@@ -1,3 +1,5 @@
+/*exercice n°1*/
+
 /*1*/
 prepare articleMoins from "select * from ARTICLE where prix > ?";
 execute articleMoins using 20;
@@ -13,7 +15,9 @@ prepare quantiteStock from "select quantite, libelle, departement from STOCKER
 natural join ARTICLE natural join ENTREPOT where libelle = ? and departement = ?";
 execute quantiteStock using @libelle, @departement;
 
-/*3*/
+/*exercice n°2*/
+
+/*1*/
 delimiter |
 create or replace function maxRefArticle() returns int
 begin
@@ -24,3 +28,29 @@ end |
 delimiter ;
 
 select maxRefArticle();
+
+/*2*/
+delimiter |
+create or replace function deptEntrepot(codeEntrepot int) returns varchar(255)
+begin
+    declare res varchar(255);
+    select departement into res from ENTREPOT where code = codeEntrepot;
+    return res;
+end |
+delimiter ;
+
+select deptEntrepot(2);
+
+/*3*/
+delimiter |
+create or replace function valEntrepot(codeEntrepot int) returns int
+begin
+    declare res int;
+    select sum(prix*quantite) into res from ARTICLE 
+    natural join STOCKER natural join ENTREPOT
+    where code = codeEntrepot;
+    return res;
+end |
+delimiter ;
+
+select valEntrepot(2);
