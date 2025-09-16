@@ -54,3 +54,41 @@ end |
 delimiter ;
 
 select valEntrepot(2);
+
+/*4*/
+delimiter |
+create or replace procedure tousLesEntrepots()
+begin
+    select * from ENTREPOT;
+end |
+delimiter ;
+
+call tousLesEntrepots();
+
+/*5*/
+delimiter |
+create or replace procedure tousLesEntrepotsTries()
+begin
+    select departement, nom from ENTREPOT order by departement;
+
+    select departement, count(*) as nbEntrepots from ENTREPOT 
+    group by departement order by departement;
+end |
+delimiter ;
+
+call tousLesEntrepotsTries()
+
+
+/*6*/
+create or replace procedure tousLesEntrepotsTries_valeur()
+begin
+    declare departement varchar(50);
+    declare nom varchar(50);
+    
+    call tousLesEntrepotsTries();
+
+    select departement, nom;
+end |
+delimiter ;
+
+call tousLesEntrepotsTries_valeur()
