@@ -59,7 +59,29 @@ select valEntrepot(2);
 delimiter |
 create or replace procedure tousLesEntrepots()
 begin
-    select * from ENTREPOT;
+declare res varchar(500) default '';
+    declare fini int default FALSE;
+    declare p_code int;
+    declare p_nom varchar(50);
+    declare p_departement varchar(50);
+
+    declare cur_entrepots cursor for 
+        select code, nom, departement 
+        from ENTREPOT 
+        order by code;
+    
+    declare continue handler for not found set fini = TRUE;
+
+    open cur_entrepots;
+    while not fini do
+        fetch cur_entrepots into p_code, p_nom, p_departement;
+
+        if not fini then
+            set res = concat(res, p_code, ' ', p_nom, ' ', p_departement, '  ');
+        end if;
+    end while;
+    close cur_entrepots;
+    select res;
 end |
 delimiter ;
 
@@ -67,28 +89,51 @@ call tousLesEntrepots();
 
 /*5*/
 delimiter |
-create or replace procedure tousLesEntrepotsTries()
+create or replace procedure tousLesEntrepotsTriés()
 begin
-    select departement, nom from ENTREPOT order by departement;
+declare res varchar(500) default '';
+    declare fini int default FALSE;
+    declare p_code int;
+    declare p_nom varchar(50);
+    declare p_departement varchar(50);
+    declare p_departement_prec varchar(50) default '';
+    declare p_compteur_dept int default 0;
 
-    select departement, count(*) as nbEntrepots from ENTREPOT 
-    group by departement order by departement;
-end |
-delimiter ;
-
-call tousLesEntrepotsTries()
-
-
-/*6*/
-create or replace procedure tousLesEntrepotsTries_valeur()
-begin
-    declare departement varchar(50);
-    declare nom varchar(50);
+    declare cur_entrepots_triés cursor for 
+        select code, nom, departement
+        from ENTREPOT 
+        order by departement;
     
-    call tousLesEntrepotsTries();
+    declare continue handler for not found set fini = TRUE;
 
-    select departement, nom;
+    open cur_entrepots_triés;
+    while not fini do
+        fetch cur_entrepots_triés into p_code, p_nom, p_departement;
+        
+        if not fini then
+
+            if p_departement_prec != p_departement THEN
+
+                IF p_departement_prec != '' THEN
+                    select CONCAT('Dans le  ', p_departement_prec, ', il y a ', p_compteur_dept, ' entrepots');
+                end if;
+
+                set p_compteur_dept = 0;
+                set p_departement_prec = p_departement;
+
+            end if;
+
+            set p_compteur_dept = p_compteur_dept + 1;
+            
+            set res = concat(res, p_code, ' ', p_nom, ' ', p_departement, ' ');
+        end if;
+    end while;
+    close cur_entrepots_triés;
+    IF p_departement_prec != '' THEN
+        SELECT CONCAT('Dans le ', p_departement_prec, ', il y a ', p_compteur_dept, ' entrepôts');
+    END IF;
+    select res;
 end |
 delimiter ;
 
-call tousLesEntrepotsTries_valeur()
+call tousLesEntrepotsTriés();
