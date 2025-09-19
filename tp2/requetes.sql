@@ -1,7 +1,7 @@
 /*exercice n°1*/
 
 /*1*/
-prepare articleMoins from "select * from ARTICLE where prix > ?";
+prepare articleMoins from 'select * from ARTICLE where prix > ?';
 execute articleMoins using 20;
 
 set @dix = 100;  /*créer une variable*/
@@ -9,10 +9,10 @@ execute articleMoins using @dix;
 desallocable prepare articleMoins   /*supprime*/
 
 /*2*/
-set @libelle = "Chaise";
-set @departement = "Cher";
-prepare quantiteStock from "select quantite, libelle, departement from STOCKER
-natural join ARTICLE natural join ENTREPOT where libelle = ? and departement = ?";
+set @libelle = 'Chaise';
+set @departement = 'Cher';
+prepare quantiteStock from 'select quantite, libelle, departement from STOCKER
+natural join ARTICLE natural join ENTREPOT where libelle = ? and departement = ?';
 execute quantiteStock using @libelle, @departement;
 
 /*exercice n°2*/
@@ -99,23 +99,23 @@ declare res varchar(500) default '';
     declare p_departement_prec varchar(50) default '';
     declare p_compteur_dept int default 0;
 
-    declare cur_entrepots_triés cursor for 
+    declare cur_entrepots_tries cursor for 
         select code, nom, departement
         from ENTREPOT 
         order by departement;
     
     declare continue handler for not found set fini = TRUE;
 
-    open cur_entrepots_triés;
+    open cur_entrepots_tries;
     while not fini do
-        fetch cur_entrepots_triés into p_code, p_nom, p_departement;
+        fetch cur_entrepots_tries into p_code, p_nom, p_departement;
         
         if not fini then
 
-            if p_departement_prec != p_departement THEN
+            if p_departement_prec != p_departement then
 
-                IF p_departement_prec != '' THEN
-                    select CONCAT('Dans le  ', p_departement_prec, ', il y a ', p_compteur_dept, ' entrepots');
+                if p_departement_prec != '' then
+                    set res = concat(res, 'Dans le  ', p_departement_prec, ', il y a ', p_compteur_dept, ' entrepots\n');
                 end if;
 
                 set p_compteur_dept = 0;
@@ -125,15 +125,77 @@ declare res varchar(500) default '';
 
             set p_compteur_dept = p_compteur_dept + 1;
             
-            set res = concat(res, p_code, ' ', p_nom, ' ', p_departement, ' ');
+            set res = concat(res, p_code, ' ', p_nom, ' ', p_departement, '\n');
         end if;
     end while;
-    close cur_entrepots_triés;
-    IF p_departement_prec != '' THEN
-        SELECT CONCAT('Dans le ', p_departement_prec, ', il y a ', p_compteur_dept, ' entrepôts');
-    END IF;
+    close cur_entrepots_tries;
+    if p_departement_prec != '' then
+        set res = concat(res, 'Dans le ', p_departement_prec, ', il y a ', p_compteur_dept, ' entrepôts');
+    end if;
     select res;
 end |
 delimiter ;
 
 call tousLesEntrepotsTriés();
+
+/*6*/
+delimiter |
+create or replace procedure tousLesEntrepotsTriésAvecVal()
+begin
+declare res varchar(5000) default '';
+    declare fini int default FALSE;
+    declare p_code int;
+    declare p_nom varchar(50);
+    declare p_departement varchar(50);
+    declare val_entrepot int;
+    declare p_departement_prec varchar(50) default '';
+    declare p_compteur_dept int default 0;
+
+    declare cur_entrepots_tries cursor for 
+        select code, nom, departement
+        from ENTREPOT 
+        order by departement;
+    
+    declare continue handler for not found set fini = TRUE;
+
+    open cur_entrepots_tries;
+    while not fini do
+        fetch cur_entrepots_tries into p_code, p_nom, p_departement;
+        
+        if not fini then
+
+            if p_departement_prec != p_departement then
+
+                if p_departement_prec != '' then
+                    set res = concat(res, 'Dans le  ', p_departement_prec, ', il y a ', p_compteur_dept, ' entrepots\n');
+                end if;
+
+                set p_compteur_dept = 0;
+                set p_departement_prec = p_departement;
+
+            end if;
+
+            set p_compteur_dept = p_compteur_dept + 1;
+            
+            set val_entrepot = valEntrepot(p_code);
+            set res = concat(res, 'L''entrepot ', p_nom, ' de code ', p_code, ' ce trouve dans le ',
+            p_departement, ', avec comme valeur ', val_entrepot, '€\n');
+       
+        end if;
+   
+    end while;
+  
+    close cur_entrepots_tries;
+   
+    if p_departement_prec != '' then
+        set res = concat(res, 'Dans le ', p_departement_prec, ', il y a ', p_compteur_dept, ' entrepôts');
+    end if;
+    
+    select res;
+end |
+delimiter ;
+
+call tousLesEntrepotsTriésAvecVal();
+
+/*7*/
+create or replace function stockNewArticle()
