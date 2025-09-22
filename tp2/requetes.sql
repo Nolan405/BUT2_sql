@@ -198,4 +198,32 @@ delimiter ;
 call tousLesEntrepotsTriésAvecVal();
 
 /*7*/
-create or replace function stockNewArticle()
+
+delimiter |
+create or replace function majArticle(p_reference int, p_libelle varchar(50), p_prix int) returns int
+begin 
+    declare res int;
+
+    if exists (select 1 from ARTICLE where reference = p_reference) then
+
+        if exists (select 1 from ARTICLE where libelle = p_libelle) then
+
+            update ARTICLE set prix = p_prix where reference = p_reference;
+            select reference into res from ARTICLE where reference = p_reference;
+
+        else
+
+            set res = -1;
+
+        end if;
+
+    else
+
+        insert into ARTICLE values(p_reference, p_libelle, p_prix);
+        select reference into res from ARTICLE where reference = p_reference;
+
+    end if;
+
+    return res;
+end |
+delimiter ;
