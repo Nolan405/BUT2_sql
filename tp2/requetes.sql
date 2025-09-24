@@ -198,7 +198,6 @@ delimiter ;
 call tousLesEntrepotsTriésAvecVal();
 
 /*7*/
-
 delimiter |
 create or replace function majArticle(p_reference int, p_libelle varchar(50), p_prix int) returns int
 begin 
@@ -225,5 +224,100 @@ begin
     end if;
 
     return res;
+end |
+delimiter ;
+
+select majArticle(1, 'Chaise', 52);
+select majArticle(3, 'Imprimante', 70);
+
+/*8*/
+delimiter |
+create or replace function entrerStocker(refA int, codeE int, qte int) returns int
+begin
+    declare res int;
+    declare quantiteAvantChangement int;
+    declare quantiteApresChangement int;
+
+    if exists (select 1 from STOCKER where reference = refA and code = codeE) then
+
+        select quantite into quantiteAvantChangement from STOCKER where reference = refA and code = codeE;
+        set quantiteApresChangement = quantiteAvantChangement + qte;
+
+        update STOCKER set quantite = quantiteApresChangement where reference = refA and code = codeE;
+        set res = quantiteApresChangement;
+    else
+        set res = -1;
+    end if;
+    return res;
+end |
+delimiter ;
+/*select entrerStocker(1, 2, 50);*/
+
+/*9*/
+delimiter |
+create or replace function sortirStock(refA int, codeE int, qte int) returns int
+begin
+    declare res int;
+    declare quantiteAvantChangement int;
+    declare quantiteApresChangement int;
+
+    if exists (select 1 from STOCKER where reference = refA and code = codeE) then
+
+        select quantite into quantiteAvantChangement from STOCKER where reference = refA and code = codeE;
+        if quantiteAvantChangement - qte >= 0 then
+
+            set quantiteApresChangement = quantiteAvantChangement - qte;
+            update STOCKER set quantite = quantiteApresChangement where reference = refA and code = codeE;
+            set res = quantiteApresChangement;
+        else
+            set res = -2;
+        end if;
+
+    else
+        set res = -1;
+    end if;
+    return res;
+end |
+delimiter ;
+/*select sortirStock(1, 2, 50);*/
+
+/*exercice n°3*/
+
+/*1*/
+delimiter |
+create or replace trigger EntrepotMemeNomMemeDepartement before insert on ENTREPOT for each row
+begin
+    declare nb int;
+    select count(*) into nb from ENTREPOT where nom = NEW.nom and departement = NEW.departement;
+
+    if nb > 0 then
+        signal SQLSTATE '45000'
+        set MESSAGE_TEXT = 'Deux entrepôts ne peut pas avoir le même nom dans le même d epartement';
+    end if;
+end |
+delimiter ;
+
+/*2*/
+delimiter |
+create or replace trigger EntrepotMemeNomTroisFois before insert on ENTREPOT for each row
+begin
+    declare nb int;
+    select count(*) into nb from ENTREPOT where departement = NEW.departement;
+
+    if nb > 2 then
+        signal SQLSTATE '45000'
+        set MESSAGE_TEXT = 'Il ne peut pas avoir plus de trois entrepôts dans un même département';
+    end if;
+end |
+delimiter ;
+
+/*3*/
+delimiter |
+create or replace trigger ConserverStockModifier after update on STOCKER for each row
+begin
+    declare dateModif date;
+
+    select curdate() into dateModif;
+    insert into HISTORIQUE values (NEW.reference, NEW.code, NEW.quantite, dateModif);
 end |
 delimiter ;

@@ -1,6 +1,7 @@
 -- CREATE DATABASE IF NOT EXISTS ENTREPOT DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 -- USE ENTREPOT;
 
+drop table if exists HISTORIQUE;
 drop table if exists STOCKER;
 drop table if exists ARTICLE;
 drop table if exists ENTREPOT;
@@ -24,6 +25,14 @@ CREATE TABLE STOCKER (
   code INT(9),
   quantite INT(5),
   PRIMARY KEY (reference, code)
+) ;
+
+CREATE TABLE HISTORIQUE (
+  reference INT(9),
+  code INT(9),
+  quantite INT(9),
+  dateModif date,
+  PRIMARY KEY (reference, code, quantite)
 ) ;
 
 
