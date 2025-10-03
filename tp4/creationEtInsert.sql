@@ -37,10 +37,13 @@ INSERT INTO ARTICLE (reference, libelle, prix) VALUES
 (1005, 'Scie électrique', 129.00);
 
 INSERT INTO ENTREPOT (code, nom, departement) VALUES
-(200, 'Entrepôt Nord', 'Nord'),
-(201, 'Entrepôt Sud', 'Hérault'),
-(202, 'Entrepôt Est', 'Bas-Rhin'),
-(203, 'Entrepôt Ouest', 'Finistère');
+(200, 'Entrepôt NordA', 'Nord'),
+(201, 'Entrepôt NordB', 'Nord'),
+(202, 'Entrepôt Sud', 'Hérault'),
+(203, 'Entrepôt Est', 'Bas-Rhin'),
+(204, 'Entrepôt OuestA', 'Finistère'),
+(205, 'Entrepôt OuestB', 'Finistère'),
+(206, 'Entrepôt OuestC', 'Finistère');
 
 INSERT INTO STOCKER (reference, code, quantite) VALUES
 (1001, 200, 150),
